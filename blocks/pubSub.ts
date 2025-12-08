@@ -63,12 +63,12 @@ export const pubSub: AppBlock = {
       const { message } = input.request.body;
 
       try {
-        await validateRequest(input.request, input.app.config)
+        await validateRequest(input.request, input.app.config);
       } catch (err: any) {
-        console.error(err.message)
+        console.error(err.message);
         await http.respond(input.request.requestId, {
           statusCode: 400,
-        })
+        });
       }
 
       let data = "";
@@ -213,7 +213,7 @@ export const pubSub: AppBlock = {
 };
 
 async function validateRequest(req: HTTPRequest, config: Record<string, any>) {
-  const { serviceAccountKey } = config
+  const { serviceAccountKey } = config;
   const requestToken = req.query.token;
   const { value: storedToken } = await kv.block.get(tokenKey);
 
@@ -236,19 +236,19 @@ async function validateRequest(req: HTTPRequest, config: Record<string, any>) {
     idToken: token,
   });
 
-  const payload = ticket.getPayload()
+  const payload = ticket.getPayload();
   if (!payload) {
     await http.respond(req.requestId, {
       statusCode: 401,
-    })
+    });
   }
 
-  const credentials = JSON.parse(serviceAccountKey)
+  const credentials = JSON.parse(serviceAccountKey);
 
   if (payload?.email !== credentials.client_email && !payload?.email_verified) {
     await http.respond(req.requestId, {
       statusCode: 401,
-    })
+    });
   }
 }
 
