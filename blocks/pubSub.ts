@@ -84,6 +84,14 @@ export const pubSub: AppBlock = {
     const { topicId } = input.block.config;
     let { subscriptionId } = input.block.config;
 
+    const existingSubscription =
+      input.block.lifecycle?.signals?.subscriptionName;
+    if (existingSubscription) {
+      return {
+        newStatus: "ready",
+      };
+    }
+
     if (!subscriptionId) {
       subscriptionId = makeId(10);
     }
