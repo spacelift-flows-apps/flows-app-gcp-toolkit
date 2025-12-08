@@ -3,7 +3,7 @@ import { PubSub } from "@google-cloud/pubsub";
 import { JWT } from "google-auth-library";
 
 export const pubSub: AppBlock = {
-  name: "GCP Pub/Sub",
+  name: "Subscribe to Pub/Sub Topic",
   description:
     "A block that will create a push subscription to a Google Pub/Sub Topic",
 
