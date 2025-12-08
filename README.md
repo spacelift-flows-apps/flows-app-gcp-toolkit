@@ -21,7 +21,7 @@ A template repository for creating new core Flows apps with best practices and C
 ├── types.ts                  # Type definitions
 ├── blocks/                   # Block implementations
 │   ├── index.ts              # Block registry and exports
-│   └── exampleBlock.ts       # Example block implementation
+│   └── pubSub.ts       # Example block implementation
 ├── setup.sh                  # Automated setup script
 └── README.md                 # This file
 ```
@@ -32,8 +32,8 @@ A template repository for creating new core Flows apps with best practices and C
 
 Find and replace these placeholders throughout the codebase:
 
-- `{{APP_NAME}}` - Your app name (e.g., "Slack Integration")
-- `{{APP_DESCRIPTION}}` - Brief description of your app
+- `GCP Toolkit` - Your app name (e.g., "Slack Integration")
+- `Blocks for Google Cloud` - Brief description of your app
 
 **Files to update:**
 
@@ -138,7 +138,7 @@ export const myNewBlock: AppBlock = {
 import { myNewBlock } from "./myNewBlock.ts";
 
 export const blocks = {
-  example: exampleBlock,
+  example: pubSub,
   myNew: myNewBlock, // Add your block here
 } as const;
 

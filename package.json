@@ -1,7 +1,9 @@
 {
   "type": "module",
   "dependencies": {
+    "@google-cloud/pubsub": "^5.2.0",
     "@slflows/sdk": "^0.0.8",
+    "google-auth-library": "^10.5.0",
     "typescript": "^5.8.3"
   },
   "devDependencies": {

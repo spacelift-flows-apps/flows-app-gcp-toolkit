@@ -21,7 +21,7 @@ This app demonstrates the standard patterns for Flows apps:
 {{app_name}}/
 ├── blocks/                   # Block implementations
 │   ├── index.ts              # Block registry and exports
-│   └── exampleBlock.ts       # Example block implementation
+│   └── pubSub.ts       # Example block implementation
 ├── .github/workflows/ci.yml  # CI/CD pipeline
 ├── main.ts                   # App definition
 ├── package.json              # Dependencies and scripts
@@ -43,7 +43,7 @@ The app requires two configuration values:
 The template uses a clean block organization pattern:
 
 - **`blocks/index.ts`** - Central registry that exports all blocks as a dictionary
-- **`blocks/exampleBlock.ts`** - Example block implementation
+- **`blocks/pubSub.ts`** - Example block implementation
 - **`main.ts`** - Imports blocks via `Object.values(blocks)` for clean registration
 
 **Example Block Features:**
@@ -58,7 +58,7 @@ The template uses a clean block organization pattern:
 ### Block Structure
 
 ```typescript
-const exampleBlock: AppBlock = {
+const pubSub: AppBlock = {
   name: "Block Name",
   description: "What this block does",
   category: "Category",
@@ -176,7 +176,7 @@ export const myBlock: AppBlock = {
 // blocks/index.ts
 import { myBlock } from "./myBlock.ts";
 export const blocks = {
-  example: exampleBlock,
+  example: pubSub,
   my: myBlock, // Add here
 } as const;
 ```
