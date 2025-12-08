@@ -1,6 +1,8 @@
-import { AppBlock, events, http } from "@slflows/sdk/v1";
+import { AppBlock, events, http, HTTPRequest, kv } from "@slflows/sdk/v1";
 import { PubSub } from "@google-cloud/pubsub";
-import { JWT } from "google-auth-library";
+import { JWT, OAuth2Client } from "google-auth-library";
+
+const tokenKey = "token";
 
 export const pubSub: AppBlock = {
   name: "Subscribe to Pub/Sub Topic",
@@ -59,6 +61,15 @@ export const pubSub: AppBlock = {
   http: {
     async onRequest(input) {
       const { message } = input.request.body;
+
+      try {
+        await validateRequest(input.request, input.app.config)
+      } catch (err: any) {
+        console.error(err.message)
+        await http.respond(input.request.requestId, {
+          statusCode: 400,
+        })
+      }
 
       let data = "";
       try {
@@ -131,10 +142,15 @@ export const pubSub: AppBlock = {
 
     let subscriptionName = "";
     try {
+      const token = makeId(16);
       const [sub] = await topic.createSubscription(subscriptionId, {
-        pushEndpoint: input.block.http?.url,
+        pushEndpoint: `${input.block.http?.url}?token=${token}`,
+        oidcToken: {
+          serviceAccountEmail: credentials.client_email,
+        },
       });
       subscriptionName = sub.name;
+      await kv.block.set({ key: tokenKey, value: token });
     } catch (err: any) {
       console.error(err.message);
 
@@ -195,6 +211,46 @@ export const pubSub: AppBlock = {
     };
   },
 };
+
+async function validateRequest(req: HTTPRequest, config: Record<string, any>) {
+  const { serviceAccountKey } = config
+  const requestToken = req.query.token;
+  const { value: storedToken } = await kv.block.get(tokenKey);
+
+  // This check should be sufficient for request validation, but for now we can keep the rest of the function
+  if (requestToken !== storedToken) {
+    await http.respond(req.requestId, {
+      statusCode: 400,
+    });
+  }
+
+  const bearer = req.headers.Authorization;
+  const [, token] = bearer.match(/Bearer (.*)/) ?? ["", ""];
+  if (!token) {
+    await http.respond(req.requestId, {
+      statusCode: 401,
+    });
+  }
+
+  const ticket = await new OAuth2Client().verifyIdToken({
+    idToken: token,
+  });
+
+  const payload = ticket.getPayload()
+  if (!payload) {
+    await http.respond(req.requestId, {
+      statusCode: 401,
+    })
+  }
+
+  const credentials = JSON.parse(serviceAccountKey)
+
+  if (payload?.email !== credentials.client_email && !payload?.email_verified) {
+    await http.respond(req.requestId, {
+      statusCode: 401,
+    })
+  }
+}
 
 function makeId(length: number) {
   let result = "";
