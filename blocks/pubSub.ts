@@ -75,8 +75,9 @@ export const pubSub: AppBlock = {
       try {
         data = Buffer.from(message.data, "base64").toString("utf-8");
       } catch (err: any) {
-        console.warn(`Unable to base64 decode message data`);
-        data = message.data;
+        await http.respond(input.request.requestId, {
+          statusCode: 400
+        })
       }
 
       await events.emit({
