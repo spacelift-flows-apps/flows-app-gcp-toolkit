@@ -69,6 +69,7 @@ export const pubSub: AppBlock = {
         await http.respond(input.request.requestId, {
           statusCode: 400,
         });
+        return
       }
 
       let data = "";
@@ -78,6 +79,7 @@ export const pubSub: AppBlock = {
         await http.respond(input.request.requestId, {
           statusCode: 400
         })
+        return
       }
 
       await events.emit({
@@ -231,6 +233,7 @@ async function validateRequest(req: HTTPRequest, config: Record<string, any>) {
     await http.respond(req.requestId, {
       statusCode: 400,
     });
+    return
   }
 
   const bearer = req.headers.Authorization;
@@ -239,6 +242,7 @@ async function validateRequest(req: HTTPRequest, config: Record<string, any>) {
     await http.respond(req.requestId, {
       statusCode: 401,
     });
+    return
   }
 
   const ticket = await new OAuth2Client().verifyIdToken({
@@ -250,6 +254,7 @@ async function validateRequest(req: HTTPRequest, config: Record<string, any>) {
     await http.respond(req.requestId, {
       statusCode: 401,
     });
+    return
   }
 
   const credentials = JSON.parse(serviceAccountKey);
