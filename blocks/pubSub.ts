@@ -63,7 +63,7 @@ export const pubSub: AppBlock = {
       const { message } = input.request.body;
 
       if (!(await isValidRequest(input.request, input.app.config))) {
-        await http.respond(input.request.requestId, {
+        return await http.respond(input.request.requestId, {
           statusCode: 401,
         });
       }
@@ -72,10 +72,9 @@ export const pubSub: AppBlock = {
       try {
         data = Buffer.from(message.data, "base64").toString("utf-8");
       } catch (err: any) {
-        await http.respond(input.request.requestId, {
+        return await http.respond(input.request.requestId, {
           statusCode: 400,
         });
-        return;
       }
 
       await events.emit({
