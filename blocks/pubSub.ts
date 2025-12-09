@@ -209,7 +209,7 @@ export const pubSub: AppBlock = {
 async function isValidRequest(
   req: HTTPRequest,
   config: Record<string, any>,
-): Promise<boolean> {
+): Promise<boolean | undefined> {
   const { serviceAccountKey } = config;
   const requestToken = req.query.token;
   const { value: storedToken } = await kv.block.get(tokenKey);
@@ -241,7 +241,7 @@ async function isValidRequest(
     return false;
   }
 
-  return !(payload?.email !== authClient.email && !payload?.email_verified);
+  return payload?.email === authClient.email && payload?.email_verified;
 }
 
 function createAuthClient(input: string): JWT {
