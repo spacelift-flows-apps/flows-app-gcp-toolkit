@@ -62,14 +62,10 @@ export const pubSub: AppBlock = {
     async onRequest(input) {
       const { message } = input.request.body;
 
-      try {
-        await validateRequest(input.request, input.app.config);
-      } catch (err: any) {
-        console.error(err.message);
+      if (!(await isValidRequest(input.request, input.app.config))) {
         await http.respond(input.request.requestId, {
-          statusCode: 400,
+          statusCode: 401,
         });
-        return
       }
 
       let data = "";
@@ -77,9 +73,9 @@ export const pubSub: AppBlock = {
         data = Buffer.from(message.data, "base64").toString("utf-8");
       } catch (err: any) {
         await http.respond(input.request.requestId, {
-          statusCode: 400
-        })
-        return
+          statusCode: 400,
+        });
+        return;
       }
 
       await events.emit({
@@ -110,25 +106,15 @@ export const pubSub: AppBlock = {
       subscriptionId = makeId(10);
     }
 
-    let credentials: any
+    let authClient: JWT;
     try {
-      credentials = JSON.parse(serviceAccountKey);
+      authClient = createAuthClient(serviceAccountKey);
     } catch (err: any) {
       return {
         newStatus: "failed",
-        customStatusDescription: "Invalid Service Account Key"
-      }
+        customStatusDescription: err.message,
+      };
     }
-
-    const authClient = new JWT({
-      email: credentials.client_email,
-      key: credentials.private_key,
-      projectId: credentials.project_id,
-      scopes: [
-        "https://www.googleapis.com/auth/cloud-platform",
-        "https://www.googleapis.com/auth/pubsub",
-      ],
-    });
 
     const pubSub = new PubSub({
       authClient: authClient,
@@ -157,7 +143,7 @@ export const pubSub: AppBlock = {
       const [sub] = await topic.createSubscription(subscriptionId, {
         pushEndpoint: `${input.block.http?.url}?token=${token}`,
         oidcToken: {
-          serviceAccountEmail: credentials.client_email,
+          serviceAccountEmail: authClient.email,
         },
       });
       subscriptionName = sub.name;
@@ -184,17 +170,15 @@ export const pubSub: AppBlock = {
     const topicName = input.block.lifecycle?.signals?.topicName;
     const subscriptionName = input.block.lifecycle?.signals?.subscriptionName;
 
-    const credentials = JSON.parse(serviceAccountKey);
-
-    const authClient = new JWT({
-      email: credentials.client_email,
-      key: credentials.private_key,
-      projectId: credentials.project_id,
-      scopes: [
-        "https://www.googleapis.com/auth/cloud-platform",
-        "https://www.googleapis.com/auth/pubsub",
-      ],
-    });
+    let authClient: JWT;
+    try {
+      authClient = createAuthClient(serviceAccountKey);
+    } catch (err: any) {
+      return {
+        newStatus: "failed",
+        customStatusDescription: err.message,
+      };
+    }
 
     const pubSub = new PubSub({
       authClient: authClient,
@@ -223,26 +207,23 @@ export const pubSub: AppBlock = {
   },
 };
 
-async function validateRequest(req: HTTPRequest, config: Record<string, any>) {
+async function isValidRequest(
+  req: HTTPRequest,
+  config: Record<string, any>,
+): Promise<boolean> {
   const { serviceAccountKey } = config;
   const requestToken = req.query.token;
   const { value: storedToken } = await kv.block.get(tokenKey);
 
   // This check should be sufficient for request validation, but for now we can keep the rest of the function
   if (requestToken !== storedToken) {
-    await http.respond(req.requestId, {
-      statusCode: 400,
-    });
-    return
+    return false;
   }
 
   const bearer = req.headers.Authorization;
   const [, token] = bearer.match(/Bearer (.*)/) ?? ["", ""];
   if (!token) {
-    await http.respond(req.requestId, {
-      statusCode: 401,
-    });
-    return
+    return false;
   }
 
   const ticket = await new OAuth2Client().verifyIdToken({
@@ -251,19 +232,36 @@ async function validateRequest(req: HTTPRequest, config: Record<string, any>) {
 
   const payload = ticket.getPayload();
   if (!payload) {
-    await http.respond(req.requestId, {
-      statusCode: 401,
-    });
-    return
+    return false;
   }
 
-  const credentials = JSON.parse(serviceAccountKey);
-
-  if (payload?.email !== credentials.client_email && !payload?.email_verified) {
-    await http.respond(req.requestId, {
-      statusCode: 401,
-    });
+  let authClient: JWT;
+  try {
+    authClient = createAuthClient(serviceAccountKey);
+  } catch (err: any) {
+    return false;
   }
+
+  return !(payload?.email !== authClient.email && !payload?.email_verified);
+}
+
+function createAuthClient(input: string): JWT {
+  let credentials: any;
+  try {
+    credentials = JSON.parse(input);
+  } catch {
+    throw new Error("Invalid Service Credentials Key");
+  }
+
+  return new JWT({
+    email: credentials.client_email,
+    key: credentials.private_key,
+    projectId: credentials.project_id,
+    scopes: [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/pubsub",
+    ],
+  });
 }
 
 function makeId(length: number) {
