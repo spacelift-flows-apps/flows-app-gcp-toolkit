@@ -108,7 +108,15 @@ export const pubSub: AppBlock = {
       subscriptionId = makeId(10);
     }
 
-    const credentials = JSON.parse(serviceAccountKey);
+    let credentials: any
+    try {
+      credentials = JSON.parse(serviceAccountKey);
+    } catch (err: any) {
+      return {
+        newStatus: "failed",
+        customStatusDescription: "Invalid Service Account Key"
+      }
+    }
 
     const authClient = new JWT({
       email: credentials.client_email,
