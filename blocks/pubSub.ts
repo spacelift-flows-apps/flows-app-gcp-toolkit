@@ -252,6 +252,14 @@ function createAuthClient(input: string): JWT {
     throw new Error("Invalid Service Credentials Key");
   }
 
+  if (
+    typeof credentials?.client_email !== "string" ||
+    typeof credentials?.private_key !== "string" ||
+    typeof credentials?.project_id !== "string"
+  ) {
+    throw new Error("Invalid Service Credentials Key");
+  }
+
   return new JWT({
     email: credentials.client_email,
     key: credentials.private_key,
