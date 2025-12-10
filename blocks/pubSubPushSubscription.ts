@@ -16,6 +16,7 @@ export const pubSubPushSubscription: AppBlock = {
       description: "Topic ID",
       type: "string",
       required: true,
+      fixed: true,
     },
     subscriptionId: {
       name: "Subscription ID",
@@ -23,6 +24,7 @@ export const pubSubPushSubscription: AppBlock = {
         "You can set a subscription ID or leave empty to generate a random ID",
       type: "string",
       required: false,
+      fixed: true,
     },
   },
   outputs: {
