@@ -1,9 +1,6 @@
-import { AppBlock, events, http, HTTPRequest, kv } from "@slflows/sdk/v1";
+import { AppBlock, events, http, HTTPRequest } from "@slflows/sdk/v1";
 import { PubSub } from "@google-cloud/pubsub";
 import { JWT, OAuth2Client } from "google-auth-library";
-import { randomBytes } from "node:crypto";
-
-const tokenKey = "token";
 
 export const pubSubPushSubscription: AppBlock = {
   name: "Subscribe to Pub/Sub Topic",
@@ -65,7 +62,13 @@ export const pubSubPushSubscription: AppBlock = {
     async onRequest(input) {
       const { message } = input.request.body;
 
-      if (!(await isValidRequest(input.request, input.app.config))) {
+      if (
+        !(await isValidRequest(
+          input.request,
+          input.app.config,
+          input.block.http?.url,
+        ))
+      ) {
         return await http.respond(input.request.requestId, {
           statusCode: 401,
         });
@@ -141,15 +144,14 @@ export const pubSubPushSubscription: AppBlock = {
 
     let subscriptionName = "";
     try {
-      const token = randomBytes(32).toString("hex");
       const [sub] = await topic.createSubscription(subscriptionId, {
-        pushEndpoint: `${input.block.http?.url}?token=${token}`,
+        pushEndpoint: input.block.http?.url,
         oidcToken: {
           serviceAccountEmail: authClient.email,
+          audience: input.block.http?.url,
         },
       });
       subscriptionName = sub.name;
-      await kv.block.set({ key: tokenKey, value: token });
     } catch (err: any) {
       console.error(err.message);
 
@@ -212,15 +214,9 @@ export const pubSubPushSubscription: AppBlock = {
 async function isValidRequest(
   req: HTTPRequest,
   config: Record<string, any>,
+  endpointUrl: string | undefined,
 ): Promise<boolean | undefined> {
   const { serviceAccountKey } = config;
-  const requestToken = req.query.token;
-  const { value: storedToken } = await kv.block.get(tokenKey);
-
-  // This check should be sufficient for request validation, but for now we can keep the rest of the function
-  if (requestToken !== storedToken) {
-    return false;
-  }
 
   const bearer = req.headers.Authorization;
   const [, token] = bearer.match(/Bearer (.*)/) ?? ["", ""];
@@ -244,7 +240,11 @@ async function isValidRequest(
     return false;
   }
 
-  return payload?.email === authClient.email && payload?.email_verified;
+  return (
+    payload?.email === authClient.email &&
+    payload?.aud === endpointUrl &&
+    payload?.email_verified
+  );
 }
 
 function createAuthClient(input: string): JWT {
