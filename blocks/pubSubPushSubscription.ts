@@ -139,7 +139,7 @@ export const pubSubPushSubscription: AppBlock = {
 
     let subscriptionName = "";
     try {
-      const token = randomBytes(16).toString("hex");
+      const token = randomBytes(32).toString("hex");
       const [sub] = await topic.createSubscription(subscriptionId, {
         pushEndpoint: `${input.block.http?.url}?token=${token}`,
         oidcToken: {
