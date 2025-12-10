@@ -15,7 +15,7 @@
  * 3. Export it for type safety and external use
  */
 
-import { exampleBlock } from "./exampleBlock";
+import { pubSubPushSubscription } from "./pubSubPushSubscription.ts";
 
 /**
  * Dictionary of all available blocks
@@ -23,10 +23,8 @@ import { exampleBlock } from "./exampleBlock";
  * Value: block definition
  */
 export const blocks = {
-  example: exampleBlock,
-  // Add more blocks here:
-  // myNewBlock: myNewBlock,
+  pubSubPushSubscription: pubSubPushSubscription,
 } as const;
 
 // Named exports for individual blocks (optional, for external imports)
-export { exampleBlock };
+export { pubSubPushSubscription };

@@ -1,27 +1,26 @@
 import { defineApp } from "@slflows/sdk/v1";
-import { blocks } from "./blocks/index";
+import { blocks } from "./blocks";
 
 export const app = defineApp({
-  name: "{{APP_NAME}}",
-  installationInstructions:
-    "{{APP_DESCRIPTION}}\n\nTo install:\n1. Add your API key\n2. Configure the base URL if needed\n3. Start using the blocks in your flows",
+  name: "GCP Toolkit",
+  installationInstructions: `## Authentication Setup
 
+You need to authenticate with GCP using a Service Account Key:
+
+1. Go to [GCP Console → IAM & Admin → Service Accounts](https://console.cloud.google.com/iam-admin/serviceaccounts)
+2. Create or select a service account
+3. Grant necessary permissions (varies by service - see GCP documentation)
+4. Click **Keys** → **Add Key** → **Create New Key** → **JSON**
+5. Download the JSON file
+6. Paste the entire JSON contents into the **Service Account Key** field below`,
   blocks,
-
   config: {
-    apiKey: {
-      name: "API Key",
-      description: "Your service API key",
+    serviceAccountKey: {
+      name: "Service Account Key",
+      description: "Service Account Key",
       type: "string",
       required: true,
       sensitive: true,
-    },
-    baseUrl: {
-      name: "Base URL",
-      description: "API base URL",
-      type: "string",
-      required: false,
-      default: "https://api.example.com",
     },
   },
 });
