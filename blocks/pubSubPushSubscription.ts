@@ -5,7 +5,7 @@ import { randomBytes } from "node:crypto";
 
 const tokenKey = "token";
 
-export const pubSub: AppBlock = {
+export const pubSubPushSubscription: AppBlock = {
   name: "Subscribe to Pub/Sub Topic",
   description:
     "A block that will create a push subscription to a Google Pub/Sub Topic",

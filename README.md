@@ -21,7 +21,7 @@ A template repository for creating new core Flows apps with best practices and C
 ├── types.ts                  # Type definitions
 ├── blocks/                   # Block implementations
 │   ├── index.ts              # Block registry and exports
-│   └── pubSub.ts       # Example block implementation
+│   └── pubSubPushSubscription.ts       # Example block implementation
 ├── setup.sh                  # Automated setup script
 └── README.md                 # This file
 ```
