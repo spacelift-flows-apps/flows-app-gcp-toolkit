@@ -32,8 +32,8 @@ export const pubSubPushSubscription: AppBlock = {
         type: "object",
         properties: {
           data: {
-            type: "string",
-            description: "Message text.",
+            type: "any",
+            description: "Message payload.",
           },
           messageId: {
             type: "string",
@@ -74,9 +74,9 @@ export const pubSubPushSubscription: AppBlock = {
         });
       }
 
-      let data = "";
+      let decodedData: string;
       try {
-        data = Buffer.from(message.data, "base64").toString("utf-8");
+        decodedData = Buffer.from(message.data, "base64").toString("utf-8");
       } catch (err: any) {
         return await http.respond(input.request.requestId, {
           statusCode: 400,
@@ -84,7 +84,7 @@ export const pubSubPushSubscription: AppBlock = {
       }
 
       await events.emit({
-        data: data,
+        data: tryParse(decodedData),
         messageId: message.messageId,
         publishTime: message.publishTime,
       });
@@ -273,6 +273,14 @@ function createAuthClient(input: string): JWT {
     ],
   });
 }
+
+const tryParse = (str: string) => {
+  try {
+    return JSON.parse(str);
+  } catch {
+    return str;
+  }
+};
 
 function makeId(length: number) {
   let result = "";
