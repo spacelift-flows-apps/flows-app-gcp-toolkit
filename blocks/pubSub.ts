@@ -1,6 +1,7 @@
 import { AppBlock, events, http, HTTPRequest, kv } from "@slflows/sdk/v1";
 import { PubSub } from "@google-cloud/pubsub";
 import { JWT, OAuth2Client } from "google-auth-library";
+import { randomBytes } from "node:crypto";
 
 const tokenKey = "token";
 
@@ -138,7 +139,7 @@ export const pubSub: AppBlock = {
 
     let subscriptionName = "";
     try {
-      const token = makeId(16);
+      const token = randomBytes(16).toString("hex");
       const [sub] = await topic.createSubscription(subscriptionId, {
         pushEndpoint: `${input.block.http?.url}?token=${token}`,
         oidcToken: {
