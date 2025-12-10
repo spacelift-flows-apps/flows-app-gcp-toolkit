@@ -312,7 +312,7 @@ git commit -m "Fix formatting"
 
 When creating a new app from this template:
 
-- [ ] Run `npm install && npm run setup` for automated setup
+- [x] Run `npm install && npm run setup` for automated setup
 - [ ] Customize app configuration schema in `main.ts`
 - [ ] Implement your block logic in `blocks/`
 - [ ] Update block names, descriptions, and categories
