@@ -1,6 +1,6 @@
 # GCP Toolkit App
 
-A Flows app that provides blocks for integrating with Google Cloud Platform services. Currently supports Google Cloud Pub/Sub.
+A Flows app that provides high level blocks for integrating with Google Cloud Platform services. Currently supports Google Cloud Pub/Sub.
 
 ## Features
 
@@ -12,7 +12,7 @@ A Flows app that provides blocks for integrating with Google Cloud Platform serv
 
 ### Subscribe to Pub/Sub Topic
 
-Subscribes to a Google Cloud Pub/Sub topic and emits messages as events when notifications are received.
+Subscribes to a Google Cloud Pub/Sub topic using a push subscription and emits messages as events when notifications are received.
 
 **Configuration:**
 
@@ -31,9 +31,8 @@ Subscribes to a Google Cloud Pub/Sub topic and emits messages as events when not
 1. Creates an HTTP(S) push subscription to your Pub/Sub topic
 2. Configures OIDC token authentication for secure message delivery
 3. Validates incoming messages using OAuth2 token verification
-4. Decodes and parses message data automatically
-5. Emits received notifications as events
-6. Automatically deletes the subscription when the block is removed
+4. Emits received notifications as events
+5. Automatically deletes the subscription when the block is removed
 
 ## Quick Start
 
