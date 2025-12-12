@@ -45,15 +45,7 @@ gcloud config get-value project
     },
     serviceAccountEmail: {
       name: "Service Account Email",
-      description: `The email address of the service account (e.g., \`my-sa@project-id.iam.gserviceaccount.com\`).
-
-**Where to find it:**
-- If using **Service Account Key**: Open the JSON key file and copy the \`client_email\` field
-- If using **Access Token**: Find it in [GCP Console → IAM & Admin → Service Accounts](https://console.cloud.google.com/iam-admin/serviceaccounts)
-
-This is required for:
-- Configuring Pub/Sub push subscriptions with OIDC authentication
-- Validating incoming push requests`,
+      description: `The email address of the service account e.g., \`my-sa@project-id.iam.gserviceaccount.com\``,
       type: "string",
       required: true,
       sensitive: false,
