@@ -2,7 +2,7 @@
 
 ## Description
 
-App for integrating with Google Cloud Platform services. Currently supports Pub/Sub subscriptions.
+App that provides high level blocks for integrating with Google Cloud Platform services. Currently supports Pub/Sub subscriptions.
 
 ## Configuration
 
