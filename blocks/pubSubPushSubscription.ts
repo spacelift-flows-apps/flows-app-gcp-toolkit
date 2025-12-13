@@ -95,7 +95,6 @@ export const pubSubPushSubscription: AppBlock = {
     },
   },
   async onSync(input) {
-    const { serviceAccountKey } = input.app.config;
     const { topicId } = input.block.config;
     let { subscriptionId } = input.block.config;
 
@@ -111,9 +110,9 @@ export const pubSubPushSubscription: AppBlock = {
       subscriptionId = makeId(10);
     }
 
-    let authClient: JWT;
+    let authClient: JWT | OAuth2Client;
     try {
-      authClient = createAuthClient(serviceAccountKey);
+      authClient = createAuthClient(input.app.config);
     } catch (err: any) {
       return {
         newStatus: "failed",
@@ -122,6 +121,7 @@ export const pubSubPushSubscription: AppBlock = {
     }
 
     const pubSub = new PubSub({
+      projectId: input.app.config.projectId,
       authClient: authClient,
     });
 
@@ -147,7 +147,7 @@ export const pubSubPushSubscription: AppBlock = {
       const [sub] = await topic.createSubscription(subscriptionId, {
         pushEndpoint: input.block.http?.url,
         oidcToken: {
-          serviceAccountEmail: authClient.email,
+          serviceAccountEmail: input.app.config.serviceAccountEmail,
           audience: input.block.http?.url,
         },
       });
@@ -170,13 +170,12 @@ export const pubSubPushSubscription: AppBlock = {
     };
   },
   async onDrain(input) {
-    const { serviceAccountKey } = input.app.config;
     const topicName = input.block.lifecycle?.signals?.topicName;
     const subscriptionName = input.block.lifecycle?.signals?.subscriptionName;
 
-    let authClient: JWT;
+    let authClient: JWT | OAuth2Client;
     try {
-      authClient = createAuthClient(serviceAccountKey);
+      authClient = createAuthClient(input.app.config);
     } catch (err: any) {
       return {
         newStatus: "failed",
@@ -185,6 +184,7 @@ export const pubSubPushSubscription: AppBlock = {
     }
 
     const pubSub = new PubSub({
+      projectId: input.app.config.projectId,
       authClient: authClient,
     });
 
@@ -216,8 +216,6 @@ async function isValidRequest(
   config: Record<string, any>,
   endpointUrl: string | undefined,
 ): Promise<boolean | undefined> {
-  const { serviceAccountKey } = config;
-
   const bearer = req.headers.Authorization;
   const [, token] = bearer.match(/Bearer (.*)/) ?? ["", ""];
   if (!token) {
@@ -233,26 +231,36 @@ async function isValidRequest(
     return false;
   }
 
-  let authClient: JWT;
-  try {
-    authClient = createAuthClient(serviceAccountKey);
-  } catch (err: any) {
-    return false;
-  }
-
   return (
-    payload?.email === authClient.email &&
+    payload?.email === config.serviceAccountEmail &&
     payload?.aud === endpointUrl &&
     payload?.email_verified
   );
 }
 
-function createAuthClient(input: string): JWT {
+function createAuthClient(config: Record<string, any>): JWT | OAuth2Client {
+  const { serviceAccountKey, accessToken } = config;
+
+  if (accessToken) {
+    const oauth2Client = new OAuth2Client({});
+    oauth2Client.setCredentials({
+      access_token: accessToken,
+    });
+
+    return oauth2Client;
+  }
+
+  if (!serviceAccountKey) {
+    throw new Error(
+      "Either Service Account Key or Access Token must be provided",
+    );
+  }
+
   let credentials: any;
   try {
-    credentials = JSON.parse(input);
+    credentials = JSON.parse(serviceAccountKey);
   } catch {
-    throw new Error("Invalid Service Credentials Key");
+    throw new Error("Invalid Service Key Credentials");
   }
 
   if (
@@ -260,7 +268,7 @@ function createAuthClient(input: string): JWT {
     typeof credentials?.private_key !== "string" ||
     typeof credentials?.project_id !== "string"
   ) {
-    throw new Error("Invalid Service Credentials Key");
+    throw new Error("Invalid Service Key Credentials");
   }
 
   return new JWT({
