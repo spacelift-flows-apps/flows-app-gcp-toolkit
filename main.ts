@@ -52,7 +52,7 @@ gcloud config get-value project
     },
     serviceAccountKey: {
       name: "Service Account Key",
-      description: `**Long-lived credentials** (optional if using Access Token below)
+      description: `**Long-lived credentials** (skip if using Access Token below)
 
 Provide your GCP Service Account JSON key file contents.
 
@@ -69,7 +69,7 @@ Provide your GCP Service Account JSON key file contents.
     },
     accessToken: {
       name: "Access Token",
-      description: `**Short-lived token** (optional if using Service Account Key above)
+      description: `**Short-lived token** (skip if using Service Account Key above)
 
 Provide a pre-generated GCP access token for keyless authentication.
 
