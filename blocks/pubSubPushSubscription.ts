@@ -6,6 +6,7 @@ export const pubSubPushSubscription: AppBlock = {
   name: "Subscribe to Pub/Sub Topic",
   description:
     "A block that will create a push subscription to a Google Pub/Sub Topic",
+  entrypoint: true,
 
   config: {
     topicId: {
@@ -32,8 +33,9 @@ export const pubSubPushSubscription: AppBlock = {
         type: "object",
         properties: {
           data: {
-            type: "any",
+            type: "object",
             description: "Message payload. Will be decoded if valid json.",
+            additionalProperties: true,
           },
           messageId: {
             type: "string",
