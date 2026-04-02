@@ -33,7 +33,9 @@ export const pubSubPushSubscription: AppBlock = {
         type: "object",
         properties: {
           data: {
+            type: "object",
             description: "Message payload. Will be decoded if valid json.",
+            additionalProperties: true,
           },
           messageId: {
             type: "string",
